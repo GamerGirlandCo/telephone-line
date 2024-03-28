@@ -299,6 +299,18 @@ Return nil for blank/empty strings."
   ;; In Emacs≥25, (via elisp--font-lock-flush-elisp-buffers and a few others)
   ;; we automatically highlight macros.
   (add-hook 'emacs-lisp-mode-hook #'telephone-line--activate-font-lock-keywords))
+;; A higher-order function that takes the following form:
+;; (SECS FUNC ...ARGS).
+;; This runs FN with ARGS at most every SECS seconds,
+;; returning the last invocation's result if invoked before SECS have passed since the last one.
+(defvar telephone-line-debounce nil)
+(let ((ts 0)
+       (last-res ""))
+  (setq telephone-line-debounce (lambda (secs func &rest funcargs)
+    (when (> (- (string-to-number (format-time-string "%s" (current-time))) ts) secs)
+      (setq last-res (apply func funcargs))
+      (setq ts (string-to-number (format-time-string "%s" (current-time)))))
+    last-res)))
 
 (provide 'telephone-line-utils)
 ;;; telephone-line-utils.el ends here

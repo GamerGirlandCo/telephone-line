@@ -23,7 +23,9 @@
 ;;; Code:
 
 (require 'telephone-line-utils)
-
+  (require 'json)
+  (require 'deferred)
+(require 'request-deferred)
 (telephone-line-defsegment* telephone-line-vc-segment ()
   (telephone-line-raw vc-mode t))
 
@@ -387,5 +389,56 @@ Configure the face group telephone-line-evil to change the colors per-mode."
   (when (bound-and-true-p nyan-mode)
     (nyan-create)))
 
+(defgroup now-playing nil
+  "Settings for 'Now Playing' segment."
+  :group 'telephone-line)
+(defcustom telephone-line-lastfm-username ""
+  "Last.fm username."
+  :type 'string
+  :group 'now-playing)
+(defcustom telephone-line-lastfm-apikey "" "Last.fm API Key."
+  :type 'string
+  :group 'now-playing)
+(defcustom telephone-line-now-playing-format "♬ ~ {{title}} [{{artist}}]"
+  "Format for now playing segment. available placeholders:
+{{artist}}
+{{title}} or {{track}}
+{{album}}"
+  :type 'string
+  :group 'now-playing)
+(defun telephone-line-np-get ()
+  "Get LFM-USERNAME's recent scrobbles from last.fm using LFM-APIKEY."
+  (require 'json)
+  (require 'deferred)
+  (require 'request-deferred)
+  (setq json-array-type 'list)
+  (setq json-object-type 'hash-table)
+  (deferred:$
+   (request-deferred "http://ws.audioscrobbler.com/2.0"
+            :params `(("method" . "user.getrecenttracks")
+             ("format" . "json")
+             ("limit" . "1")
+             ("user" . ,telephone-line-lastfm-username)
+             ("api_key" . ,telephone-line-lastfm-apikey))
+            :parser 'json-read)
+   (deferred:nextc it (lambda (response)
+        (let* ((recenttracks (gethash "recenttracks" (request-response-data response)))
+               (trackarr (gethash "track" recenttracks))
+               (track (car trackarr))
+               (tname (gethash "name" track))
+               (kArtist (gethash "artist" track))
+               (kAlbum (gethash "album" track))
+               (artist (gethash "#text" kArtist))
+               (album (gethash "#text" kAlbum)))
+    (defun replace-format (name value string) ".//internal//."
+      (replace-regexp-in-string (concat "\{\{\\(" name "\\)\}\}" ) value string nil t))
+    (defun replace-metadata ()
+      (let* ((a1 (replace-format "album" album telephone-line-now-playing-format))
+             (a2 (replace-format "artist" artist a1))
+             (a3 (replace-format "title\\|track" tname a2)))
+        a3))
+  (replace-metadata))))))
+(telephone-line-defsegment* telephone-line-now-playing-segment ()
+  (deferred-value (funcall telephone-line-debounce 40 #'telephone-line-np-get)))
 (provide 'telephone-line-segments)
 ;;; telephone-line-segments.el ends here
