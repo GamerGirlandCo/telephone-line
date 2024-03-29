@@ -399,6 +399,12 @@ Configure the face group telephone-line-evil to change the colors per-mode."
 (defcustom telephone-line-lastfm-apikey "" "Last.fm API Key."
   :type 'string
   :group 'now-playing)
+(defcustom telephone-line-now-playing-length 15 "Max length of now playing text"
+  :type 'integer
+  :group 'now-playing)
+(defcustom telephone-line-now-playing-scroll-speed 1 "Controls scroll speed of truncated now playing text"
+  :type 'integer
+  :group 'now-playing)
 (defcustom telephone-line-now-playing-format "♬ ~ {{title}} [{{artist}}]"
   "Format for now playing segment. available placeholders:
 {{artist}}
@@ -439,6 +445,7 @@ Configure the face group telephone-line-evil to change the colors per-mode."
         a3))
   (replace-metadata))))))
 (telephone-line-defsegment* telephone-line-now-playing-segment ()
-  (deferred-value (funcall telephone-line-debounce 40 #'telephone-line-np-get)))
+  (telephone-line-roll-text
+           (funcall telephone-line-debounce 40 #'telephone-line-np-get) telephone-line-now-playing-length telephone-line-now-playing-scroll-speed))
 (provide 'telephone-line-segments)
 ;;; telephone-line-segments.el ends here
