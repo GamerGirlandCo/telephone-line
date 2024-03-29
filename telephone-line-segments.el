@@ -446,8 +446,7 @@ Configure the face group telephone-line-evil to change the colors per-mode."
              (a3 (replace-format "title\\|track" tname a2)))
         a3))
   (replace-metadata))))))
-(telephone-line-defsegment telephone-line-now-playing-segment ()
-  (telephone-line-roll-text
-           (funcall telephone-line-debounce 40 #'telephone-line-np-get) telephone-line-now-playing-length telephone-line-now-playing-scroll-speed))
+(telephone-line-defsegment* telephone-line-now-playing-segment ()
+    (deferred-value (funcall telephone-line-debounce 40 #'telephone-line-np-get)))
 (provide 'telephone-line-segments)
 ;;; telephone-line-segments.el ends here

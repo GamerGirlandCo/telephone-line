@@ -311,15 +311,5 @@ Return nil for blank/empty strings."
       (setq last-res (apply func funcargs))
       (setq ts (string-to-number (format-time-string "%s" (current-time)))))
     last-res)))
-(defun telephone-line-roll-text (otext maxlen speed)
-  "Truncate OTEXT to MAXLEN and scroll it forwards at SPEED."
-  (if (< (length otext) maxlen) (car `(,otext))
-    (let* ((text (concat otext "   "))
-           (tlen (length text))
-           (offset (mod (* (string-to-number (format-time-string "%s" (current-time))) speed) tlen))
-           (trimmed (substring text offset))
-           (final (substring trimmed 0 (min maxlen (length trimmed))))
-           (looped (substring text 0 (abs (- maxlen (length final))))))
-      (concat final looped))))
 (provide 'telephone-line-utils)
 ;;; telephone-line-utils.el ends here
