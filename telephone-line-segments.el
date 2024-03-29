@@ -426,7 +426,9 @@ Configure the face group telephone-line-evil to change the colors per-mode."
              ("limit" . "1")
              ("user" . ,telephone-line-lastfm-username)
              ("api_key" . ,telephone-line-lastfm-apikey))
-            :parser 'json-read)
+            :parser 'json-read
+            :error (lambda (err)
+                     (message "fetch error: %s" err)))
    (deferred:nextc it (lambda (response)
         (let* ((recenttracks (gethash "recenttracks" (request-response-data response)))
                (trackarr (gethash "track" recenttracks))
